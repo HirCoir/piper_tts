@@ -18,10 +18,11 @@ def install_tqdm():
             print("An error occurred while installing tqdm. Make sure you have pip installed on your system.")
 install_tqdm()
 from tqdm import tqdm
+
 work_dir = os.path.dirname(os.path.abspath(__file__))
-piper_dir = os.path.join(work_dir, "piper")
 model_dir = os.path.join(work_dir, "model")
 DOWNLOAD_URL_BASE = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/"
+
 def download_with_progress(url, target_path):
     response = urllib.request.urlopen(url)
     total_size = int(response.info().get("Content-Length", -1))
@@ -35,31 +36,34 @@ def download_with_progress(url, target_path):
             file.write(buffer)
             progress_bar.update(len(buffer))
     progress_bar.close()
-if not os.path.exists(piper_dir):
-    arch = platform.machine()
-    if arch == "x86_64":
-        DOWNLOAD_URL = DOWNLOAD_URL_BASE + "piper_linux_x86_64.tar.gz"
-    elif arch == "armv7l":
-        DOWNLOAD_URL = DOWNLOAD_URL_BASE + "piper_linux_armv7l.tar.gz"
-    elif arch == "aarch64":
-        DOWNLOAD_URL = DOWNLOAD_URL_BASE + "piper_linux_aarch64.tar.gz"
-    else:
-        print("Unsupported architecture:", arch)
-        exit(1)
-    file_name = "piper.tar.gz"
-    file_path = os.path.join(work_dir, file_name)
-    download_with_progress(DOWNLOAD_URL, file_path)
-    with tarfile.open(file_path, "r:gz") as tar:
-        tar.extractall(path=piper_dir)
-    os.remove(file_path)
-    print("Piper has been downloaded and extracted successfully.")
+
+arch = platform.machine()
+if arch == "x86_64":
+    DOWNLOAD_URL = DOWNLOAD_URL_BASE + "piper_linux_x86_64.tar.gz"
+elif arch == "armv7l":
+    DOWNLOAD_URL = DOWNLOAD_URL_BASE + "piper_linux_armv7l.tar.gz"
+elif arch == "aarch64":
+    DOWNLOAD_URL = DOWNLOAD_URL_BASE + "piper_linux_aarch64.tar.gz"
 else:
-    print("Piper is already downloaded.")
+    print("Unsupported architecture:", arch)
+    exit(1)
+
+file_name = "piper.tar.gz"
+file_path = os.path.join(work_dir, file_name)
+download_with_progress(DOWNLOAD_URL, file_path)
+
+with tarfile.open(file_path, "r:gz") as tar:
+    tar.extractall(path=work_dir)
+
+os.remove(file_path)
+print("Piper has been downloaded and extracted successfully.")
+
 download_models = input("Do you want to download a default voice model? (yes/no): ").strip().lower() == "yes"
 if download_models:
     models_dir = model_dir
     if not os.path.exists(models_dir):
         os.makedirs(models_dir)
+
     print("Available models: es_MX (Spanish Mexico), en_US (English US)")
     model_choice = input("Enter the language of the voice model you want to download: ").strip()
     models = {
